@@ -3,6 +3,15 @@
 
 using namespace std;
 
+void showList(list<int> &l){
+    list<int> :: iterator i ;
+    for(i=l.begin();i !=l.end(); i++){
+        cout<< *i <<" ";
+    }
+    cout<<endl;
+}
+
+
 int main(){
 
     list<int> listOfNumbers;
@@ -26,20 +35,58 @@ int main(){
     list<int> :: iterator i;
 
     cout<<"NOT SORTED"<<endl;
-    for(i = listOfNumbers.begin(); i != listOfNumbers.end(); ++i){
-        cout << *i << " ";
-
-    }
-
-    cout<<endl;
+    showList(listOfNumbers);
 
     listOfNumbers.sort();
     cout<<"SORTED"<<endl;
-    for(i = listOfNumbers.begin(); i != listOfNumbers.end(); ++i){
-        cout << *i << " ";
+    showList(listOfNumbers);
 
-    }
-    cout<<endl;
+    cout<<"Pushing back"<<endl;
+    listOfNumbers.push_back(500);
+    showList(listOfNumbers);
+
+    cout<<"INserting 300 at second position"<<endl;
+
+    i = listOfNumbers.begin();
+    listOfNumbers.insert(++i, 300);
+    showList(listOfNumbers);
+
+    cout<<"Inserting 600 second last position"<<endl;
+
+    i = listOfNumbers.end();
+    listOfNumbers.insert(--i, 600);
+    showList(listOfNumbers);
+
+    cout<<"Deleting first element"<<endl;
+    //storing value of first element in a variable before poping it out
+    int x;
+    i = listOfNumbers.begin();
+    x = *i;
+    listOfNumbers.pop_front();
+    showList(listOfNumbers);
+
+    cout<<"Deleting last element"<<endl;
+    //use x variable
+    
+    //setting iterator to end
+    i = listOfNumbers.end();
+    x = *i;
+    listOfNumbers.pop_back();
+    showList(listOfNumbers);
+
+    cout<<"Empty the list"<<endl;
+    listOfNumbers.clear();
+    showList(listOfNumbers);
+    
+
+
+
+
+
+    
+    
+
+
 
     return 0;
 }
