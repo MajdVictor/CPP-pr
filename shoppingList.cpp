@@ -1,5 +1,6 @@
 #include <iostream>
 #include <list>
+#include <fstream>
 
 using namespace std;
 
@@ -47,6 +48,9 @@ class Item{
         quantity = q;
     }
 
+    float get_total_price(){
+        return price * quantity;
+    }
 
 };
 
@@ -54,6 +58,7 @@ void showList(list<Item> &l){
     list<Item> :: iterator i ;
     for(i=l.begin();i !=l.end(); i++){
         cout<< "Name: " << i->get_name() << ", Price: "<< i->get_price()<< ", Quantity: "<<i->get_quantity()<<endl;
+        
     }
     cout<<endl;
 }
@@ -65,9 +70,26 @@ int main(){
     string name;
     float price;
     int quantity;
+    float total_price;
+
+    ofstream fileWriter;
+    ifstream fileReader;
 
     list<Item> shoppinglist;
     list<Item> :: iterator itr;
+
+    fileReader.open("shoppingList.txt");
+
+    if(fileReader.good())
+    {
+		while(fileReader >> name >> price >> quantity)
+    	{
+			Item *it = new Item(name,price,quantity);
+        	shoppinglist.push_back(*it);
+     	}
+    }
+
+    fileReader.close();
 
 
     do{
@@ -109,6 +131,7 @@ int main(){
                             else{
                                 Item *newItem = new Item(name, price, quantity);
                                 shoppinglist.push_back(*newItem);
+                                break;
                             }
                         }
                     }
@@ -175,7 +198,25 @@ int main(){
                 case 4:
                     showList( shoppinglist );
                     break;
+
+                case 5:
+                    shoppinglist.clear();
+
                 case 0:
+                    fileWriter.open("shoppinglist.txt");
+	            	if(fileWriter.good())
+	            	{
+						for (itr=shoppinglist.begin(); itr != shoppinglist.end(); itr++)
+						{
+							fileWriter << itr->get_name() << "\t" << itr->get_price() << "\t" << itr->get_quantity() << endl;
+						}
+						
+					}
+					else
+						cout << "Datei shoppinglist.txt cannot be opened. Old list remains." << endl;
+
+	            	cout << "Goodbye!" << endl;
+	                break;
                     break;
                 
                 default:
@@ -192,17 +233,11 @@ int main(){
             else if(msg == 2){
                 cout<<"Invalid quantity"<<endl;
             }
-            return 0;
+            // return 0;
         }
 
 
     }while(user_input);
-
-
-
-
-
-
 
 
 
