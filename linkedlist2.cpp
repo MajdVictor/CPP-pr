@@ -11,6 +11,7 @@ class Person{
     string firstname;
     string lastname;
     int age;
+    
     Person *next;
 
     public:
