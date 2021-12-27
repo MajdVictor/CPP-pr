@@ -206,6 +206,15 @@ class Customer{
     char get_license(){
         return driving_licence;
     }
+    string get_telephone(){
+        return telephone_number;
+    }
+    Date get_date(){
+        return birth_date;
+    }
+    Address get_address(){
+        return address;
+    }
 
 
 
@@ -270,11 +279,11 @@ ostream& operator<< (ostream& os, Customer& cus) {
 
 class Reservation{
 
-    private:
+    public:
     Customer customer;
     Motorcycle bike;
 
-    public:
+    
     Reservation(Customer customer, Motorcycle bike){
         this->customer = customer;
         this->bike = bike;
@@ -282,6 +291,13 @@ class Reservation{
         this->bike.reserve();
     }
     ~Reservation(){}
+
+    // Motorcycle get_motorcycle(){
+    //     return bike;
+    // }
+    // Customer get_customer(){
+    //     return customer;
+    // }
 
     void cancel_reservation();
 
@@ -314,20 +330,20 @@ void printAvailableBikes(Motorcycle bike[]){
     cout<<"----------------"<<endl;
     for(int i=0; i<4; i++){
         if(!bike[i].is_reserved()){
-            cout<<1+1<<"- "<<bike[i].get_make() <<", Plate Code: "<<bike[i].get_id_plate()<<endl;
+            cout<<i+1<<"- "<<bike[i].get_make() <<", Plate Code: "<<bike[i].get_id_plate()<<endl;
 
         }
     }
 }
 
-Customer* findCustomer(list<Customer> &customer, string first_name, string last_name){
+Customer* findCustomer(list<Customer> customer, string first_name, string last_name){
     list<Customer> :: iterator i;
     for(i=customer.begin();i !=customer.end(); i++){
             if(i->get_firstname() == first_name && i->get_lastname() == last_name){
-                return i;
+                return &*i;
         }   
     }
-    return NULL;
+    return nullptr;
 
 }
 
@@ -338,7 +354,8 @@ int main(){
     int dd, mm, yyyy;
     string postal, city, street;
     char driving_lic;
-    Customer customer_found;
+    Customer *customer_found = nullptr;
+    bool is_found = false;
 
     list<Reservation> reservations;
     list<Reservation> :: iterator reservation_itr;
@@ -358,6 +375,12 @@ int main(){
     
     Customer *c1;
     Reservation *r;
+
+    // fileWriter.open("reservations.txt");
+    // if(fileWriter.good())
+    // {
+    //     cout<<"MAJD"<<endl;
+    // }
 
     fileReader.open("reservations.txt");
 
@@ -379,9 +402,10 @@ int main(){
             }
         	reservations.push_back(*r);
      	}
+        
     }
 
-    fileReader.close();
+    
 
     do{
         cout<<"[1] Add Cutomers"<<endl<<"[2] List Customers"<<endl<<"[3] Reserve Bike "<<endl<<"[4] Hand-over Bike"<<endl<<"[5] List Reservation"<<endl<<"[0] Exit"<<endl;
@@ -396,6 +420,7 @@ int main(){
                     c1 = new Customer();
 
                     cin >> *c1;
+                    cout<<c1<<endl;
 
                     customers_list.push_back(*c1);
 
@@ -419,32 +444,73 @@ int main(){
                     cin>>first_name;
                     cout<<"Customer's last name: ";
                     cin>>last_name;
+                    
+                    // list<Customer> :: iterator i;
+                    for(customer_itr=customers_list.begin();customer_itr !=customers_list.end(); customer_itr++){
+                            if(customer_itr->get_firstname() == first_name && customer_itr->get_lastname() == last_name){
+                                // customer_found = &*customer_itr;
+                                is_found = true;
+
+                               
+                        }   
+                    }
 
                     // customer_found = findCustomer(customers_list, first_name, last_name);
                     // cout<<customer_found;
-                    // if(&customer_found == NULL){
-                    //     cout<<"No customer holding this name was found!"<<endl;
+                    if(!customer_found){
+                        cout<<"No customer holding this name was found!"<<endl;
 
-                    // }else{
-                    //     if (customer_found.get_license() == 'A')
-                    //     {
-                    //         if(customer_found.get_reservation_status() == true){
-                    //             cout<<"This customer already has a bike, cannot reserver another one"<<endl;
-                    //         }
-                    //         else{
-                    //             for(int i=0; i<4; i++){
-                    //                 if(motorcycles[i].get_id_plate() == id_plate && motorcycles[i].is_reserved()){
-                    //                     motorcycles[i].reserve();
-                    //                 }
-                    //             }
-                    //         }
-                    //     }
-                    //     else{
-                    //         cout<<"Cannot make this reservation, because the driving license is not of type A"<<endl;
-                    //     }
+                    }else{
+                        if (customer_found->get_license() == 'A')
+                        {
+                            if(customer_found->get_reservation_status() == true){
+                                cout<<"This customer already has a bike, cannot reserver another one"<<endl;
+                            }
+                            else{
+                                for(int i=0; i<4; i++){
+                                    if(motorcycles[i].get_id_plate() == id_plate && !motorcycles[i].is_reserved()){
+                                        motorcycles[i].reserve();
+                                        customer_found->rent();
+                                        cout<<customer_found<<endl;
+                                        r = new Reservation(*customer_found, motorcycles[i]);
+                                        reservations.push_back(*r);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else{
+                            cout<<"Cannot make this reservation, because the driving license is not of type A"<<endl;
+                        }
                         
-                    // }
+                    }
+                    //TO-DO : empty file before
+                    fileReader.close();
+                    fileWriter.open("reservations.txt");
+	            	if(fileWriter.good())
+	            	{
+						for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
+						{
+							fileWriter << reservation_itr->customer.get_firstname()
+                            << "\t" << reservation_itr->customer.get_lastname()
+                            << "\t" << reservation_itr->customer.get_telephone()
+                            << "\t" << reservation_itr->customer.get_license()
+                            << "\t" << reservation_itr->customer.get_date().get_day()
+                            << "\t" << reservation_itr->customer.get_date().get_month()
+                            << "\t" << reservation_itr->customer.get_date().get_year()
+                            << "\t" << reservation_itr->customer.get_address().get_postal_code()
+                            << "\t" << reservation_itr->customer.get_address().get_city()
+                            << "\t" << reservation_itr->customer.get_address().get_street()
+                            << "\t" << reservation_itr->bike.get_id_plate()<<endl;
+						}
+						
+					}
+					else{
+						cout << "File cannot be accessed" << endl;
 
+                    }
+                    fileWriter.close();
+                
                     break;
 
                 case 4:
@@ -456,21 +522,7 @@ int main(){
                     break;
 
                 case 0:
-                    // fileWriter.open("shoppinglist.txt");
-	            	// if(fileWriter.good())
-	            	// {
-					// 	for (itr=shoppinglist.begin(); itr != shoppinglist.end(); itr++)
-					// 	{
-					// 		fileWriter << itr->get_name() << "\t" << itr->get_price() << "\t" << itr->get_quantity() << endl;
-					// 	}
-						
-					// }
-					// else
-					// 	cout << "Datei shoppinglist.txt cannot be opened. Old list remains." << endl;
-
-	            	// cout << "Goodbye!" << endl;
-	                // break;
-                    break;
+                        break;
                 
                 default:
                     cout<<"Wrong input"<<endl;
