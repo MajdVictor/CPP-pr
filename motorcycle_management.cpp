@@ -281,15 +281,15 @@ ostream& operator<< (ostream& os, Customer& cus) {
 class Reservation{
 
     public:
-    Customer customer;
-    Motorcycle bike;
+    Customer *customer;
+    Motorcycle *bike;
 
-    
-    Reservation(Customer customer, Motorcycle bike){
-        this->customer = customer;
-        this->bike = bike;
-        this->customer.rent();
-        this->bike.reserve();
+    Reservation(){}
+    Reservation(Customer *cusP, Motorcycle &bikeP){
+        this->customer = cusP;
+        this->bike = &bikeP;
+        this->customer->rent();
+        this->bike->reserve();
     }
     ~Reservation(){}
 
@@ -305,8 +305,8 @@ class Reservation{
 };
 
 void Reservation::cancel_reservation(){
-    bike.hand_in_bike();
-    customer.hand_over();
+    bike->hand_in_bike();
+    customer->hand_over();
 }
 
 
@@ -337,15 +337,33 @@ void printAvailableBikes(Motorcycle bike[]){
     }
 }
 
-Customer* findCustomer(list<Customer> customer, string first_name, string last_name){
-    list<Customer> :: iterator i;
-    for(i=customer.begin();i !=customer.end(); i++){
-            if(i->get_firstname() == first_name && i->get_lastname() == last_name){
-                return &*i;
-        }   
+void WriteReservationFile(list<Reservation> &reservations, ofstream& fileWriter){
+    // ofstream fileWriter;
+    list<Reservation> :: iterator reservation_itr;
+    fileWriter.open("reservations.txt");
+    if(fileWriter.good())
+    {   
+        for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
+        {
+            fileWriter << reservation_itr->customer->get_firstname()
+            << "\t" << reservation_itr->customer->get_lastname()
+            << "\t" << reservation_itr->customer->get_telephone()
+            << "\t" << reservation_itr->customer->get_license()
+            << "\t" << reservation_itr->customer->get_date().get_day()
+            << "\t" << reservation_itr->customer->get_date().get_month()
+            << "\t" << reservation_itr->customer->get_date().get_year()
+            << "\t" << reservation_itr->customer->get_address().get_postal_code()
+            << "\t" << reservation_itr->customer->get_address().get_city()
+            << "\t" << reservation_itr->customer->get_address().get_street()
+            << "\t" << reservation_itr->bike->get_id_plate()<<endl;
+        }
+        
     }
-    return nullptr;
+    else{
+        cout << "File cannot be accessed" << endl;
+    }
 
+    fileWriter.close();
 }
 
 int main(){
@@ -377,12 +395,7 @@ int main(){
     Customer *c1;
     Reservation *r;
 
-    // fileWriter.open("reservations.txt");
-    // if(fileWriter.good())
-    // {
-    //     cout<<"MAJD"<<endl;
-    // }
-
+ 
     fileReader.open("reservations.txt");
 
     if(fileReader.good())
@@ -397,7 +410,7 @@ int main(){
                 if (motorcycles[i].get_id_plate() == id_plate)
                 {
                     motorcycles[i].reserve();
-                    r = new Reservation(*c1, motorcycles[i]);
+                    r = new Reservation(&*c1, motorcycles[i]);
                 }
                 
             }
@@ -405,8 +418,6 @@ int main(){
      	}
         
     }
-
-    
 
     do{
         cout<<"[1] Add Cutomers"<<endl<<"[2] List Customers"<<endl<<"[3] Reserve Bike "<<endl<<"[4] Hand-over Bike"<<endl<<"[5] List Reservation"<<endl<<"[0] Exit"<<endl;
@@ -457,7 +468,7 @@ int main(){
                                     // cout<<"HERE1"<<endl;
                                     motorcycles[i].reserve();
                                     customer_itr->rent();
-                                    r = new Reservation(*customer_itr, motorcycles[i]);
+                                    r = new Reservation(&*customer_itr, motorcycles[i]);
                                     reservations.push_back(*r);
                                     // cout<<"HERE2"<<endl;
                                     break;
@@ -480,30 +491,31 @@ int main(){
                     
                     
                     fileReader.close();
-                    fileWriter.open("reservations.txt");
-	            	if(fileWriter.good())
-	            	{   
-						for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
-						{
-							fileWriter << reservation_itr->customer.get_firstname()
-                            << "\t" << reservation_itr->customer.get_lastname()
-                            << "\t" << reservation_itr->customer.get_telephone()
-                            << "\t" << reservation_itr->customer.get_license()
-                            << "\t" << reservation_itr->customer.get_date().get_day()
-                            << "\t" << reservation_itr->customer.get_date().get_month()
-                            << "\t" << reservation_itr->customer.get_date().get_year()
-                            << "\t" << reservation_itr->customer.get_address().get_postal_code()
-                            << "\t" << reservation_itr->customer.get_address().get_city()
-                            << "\t" << reservation_itr->customer.get_address().get_street()
-                            << "\t" << reservation_itr->bike.get_id_plate()<<endl;
-						}
+                    WriteReservationFile(reservations, fileWriter);
+                    // fileWriter.open("reservations.txt");
+	            	// if(fileWriter.good())
+	            	// {   
+					// 	for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
+					// 	{
+					// 		fileWriter << reservation_itr->customer.get_firstname()
+                    //         << "\t" << reservation_itr->customer.get_lastname()
+                    //         << "\t" << reservation_itr->customer.get_telephone()
+                    //         << "\t" << reservation_itr->customer.get_license()
+                    //         << "\t" << reservation_itr->customer.get_date().get_day()
+                    //         << "\t" << reservation_itr->customer.get_date().get_month()
+                    //         << "\t" << reservation_itr->customer.get_date().get_year()
+                    //         << "\t" << reservation_itr->customer.get_address().get_postal_code()
+                    //         << "\t" << reservation_itr->customer.get_address().get_city()
+                    //         << "\t" << reservation_itr->customer.get_address().get_street()
+                    //         << "\t" << reservation_itr->bike.get_id_plate()<<endl;
+					// 	}
 						
-					}
-					else{
-						cout << "File cannot be accessed" << endl;
-                    }
+					// }
+					// else{
+					// 	cout << "File cannot be accessed" << endl;
+                    // }
 
-                    fileWriter.close();
+                    // fileWriter.close();
                 
                     break;
 
@@ -519,63 +531,57 @@ int main(){
                     
                     for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
                     {
-                        if(reservation_itr->customer.get_firstname() == first_name && reservation_itr->customer.get_lastname() == last_name){
+                        if(reservation_itr->customer->get_firstname() == first_name && reservation_itr->customer->get_lastname() == last_name){
+                            reservation_itr->cancel_reservation();
                             reservations.erase(reservation_itr);
                             cout<<"Reservation deleted Successfully!"<<endl;
                             is_found = true;
                         }
                     }
 
-                    if(is_found){
-                        for(customer_itr=customers_list.begin();customer_itr !=customers_list.end(); customer_itr++){
-                        if(customer_itr->get_firstname() == first_name && customer_itr->get_lastname() == last_name){
-                            customers_list.erase(customer_itr);
-                        }
-                    }
-                    }
+                    // if(is_found){
+                    //     for(customer_itr=customers_list.begin();customer_itr !=customers_list.end(); customer_itr++){
+                    //     if(customer_itr->get_firstname() == first_name && customer_itr->get_lastname() == last_name){
+                    //         customers_list.erase(customer_itr);
+                    //     }
+                    // }
+                    
                     
 
                     if(is_found){
                         fileReader.close();
-                        fileWriter.open("reservations.txt");
-                        if(fileWriter.good())
-                        {   
-                            for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
-                            {
-                                fileWriter << reservation_itr->customer.get_firstname()
-                                << "\t" << reservation_itr->customer.get_lastname()
-                                << "\t" << reservation_itr->customer.get_telephone()
-                                << "\t" << reservation_itr->customer.get_license()
-                                << "\t" << reservation_itr->customer.get_date().get_day()
-                                << "\t" << reservation_itr->customer.get_date().get_month()
-                                << "\t" << reservation_itr->customer.get_date().get_year()
-                                << "\t" << reservation_itr->customer.get_address().get_postal_code()
-                                << "\t" << reservation_itr->customer.get_address().get_city()
-                                << "\t" << reservation_itr->customer.get_address().get_street()
-                                << "\t" << reservation_itr->bike.get_id_plate()<<endl;
-                            }
+                        // fileWriter.open("reservations.txt");
+                        // if(fileWriter.good())
+                        // {   
+                        //     for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
+                        //     {
+                        //         fileWriter << reservation_itr->customer.get_firstname()
+                        //         << "\t" << reservation_itr->customer.get_lastname()
+                        //         << "\t" << reservation_itr->customer.get_telephone()
+                        //         << "\t" << reservation_itr->customer.get_license()
+                        //         << "\t" << reservation_itr->customer.get_date().get_day()
+                        //         << "\t" << reservation_itr->customer.get_date().get_month()
+                        //         << "\t" << reservation_itr->customer.get_date().get_year()
+                        //         << "\t" << reservation_itr->customer.get_address().get_postal_code()
+                        //         << "\t" << reservation_itr->customer.get_address().get_city()
+                        //         << "\t" << reservation_itr->customer.get_address().get_street()
+                        //         << "\t" << reservation_itr->bike.get_id_plate()<<endl;
+                        //     }
                             
-                        }
-                        else{
-                            cout << "File cannot be accessed" << endl;
-                        }
+                        // }
+                        // else{
+                        //     cout << "File cannot be accessed" << endl;
+                        // }
+                        WriteReservationFile(reservations, fileWriter);
 
                         is_found = false;
 
                     }else{
                         cout<<"Reservation with this customer's name NOT found!"<<endl;
                     }
-
-
-
-                    
-                    
-                    
+                
                     break;
 
-                case 5:
-                    
-                    break;
 
                 case 0:
                         break;
