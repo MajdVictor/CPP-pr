@@ -301,9 +301,10 @@ ostream& operator<< (ostream& os, Customer& cus) {
 
 class Reservation{
     /*
-    
+        Reservation class used for reservations for customers and bikes
     */
     public:
+    //Each reservation object has customer and bike objects
     Customer *customer;
     Motorcycle *bike;
 
@@ -311,8 +312,8 @@ class Reservation{
     Reservation(Customer *cusP, Motorcycle &bikeP){
         customer = cusP;
         bike = &bikeP;
-        customer->rent();
-        bike->reserve();
+        customer->rent(); //setting customer reserved_any flag to true
+        bike->reserve(); //setting bike reservation status to true
     }
     ~Reservation(){}
 
@@ -321,12 +322,16 @@ class Reservation{
 };
 
 void Reservation::cancel_reservation(){
+    //setting the reservation flags in both objects to false when reseration is cancelled
     bike->hand_in_bike();
     customer->hand_over();
 }
 
+
 void showCustomers(list<Customer> &customer){
-    list<Customer> :: iterator i ;
+    /*This function is used to print out customers stored in the list*/
+
+    list<Customer> :: iterator i ; //iterator
 
     if(customer.empty()){
         cout<<"List is empty"<<endl;
@@ -340,7 +345,7 @@ void showCustomers(list<Customer> &customer){
 }
 
 void printAvailableBikes(Motorcycle bike[]){
-
+    /*This function iterates over the bike array and prints out the available bikes*/
     cout<<"Available bikes"<<endl;
     cout<<"----------------"<<endl;
     for(int i=0; i<4; i++){
@@ -352,11 +357,12 @@ void printAvailableBikes(Motorcycle bike[]){
 }
 
 void WriteReservationFile(list<Reservation> &reservations, ofstream& fileWriter){
-    // ofstream fileWriter;
+    /*This function is used to write reservtions in the text file. the two parameters are the reservation list and the file writer object*/
     list<Reservation> :: iterator reservation_itr;
     fileWriter.open("reservations.txt");
     if(fileWriter.good())
     {   
+        //iteration over the reservation list and writing into the text file
         for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
         {
             fileWriter << reservation_itr->customer->get_firstname()
@@ -381,36 +387,46 @@ void WriteReservationFile(list<Reservation> &reservations, ofstream& fileWriter)
 }
 
 int main(){
+    
+    int user_input; //holds user input
 
-    int user_input;
-    string first_name, last_name, id_plate, telephone;
-    int dd, mm, yyyy;
+    //variables for customer information
+    string first_name, last_name, id_plate, telephone; 
+    int dd, mm, yyyy; // dd= day of birth, mm= month of birth, yyyy=year of birth
     string postal, city, street;
-    char driving_lic;
-    Customer *customer_found = nullptr;
-    bool is_found = false;
-    bool bike_found = false;
+    char driving_lic; //driving license type
 
+    bool is_found = false; //flag for customer to check if it's found
+    bool bike_found = false; //flag for bike to check if it's found
+
+    //reservation list to hold all reservation objects
     list<Reservation> reservations;
+    //reservation iterator to iterate over the reservation list
     list<Reservation> :: iterator reservation_itr;
 
+    //creating 4 objects of bikes
     Motorcycle suzuki("Suzuki Bandit", "S1");
     Motorcycle honda("Honda TransAlp", "H1");
     Motorcycle bmw("BMW F 650 GS", "B1");
     Motorcycle kawazaki("Kawasaki ZZR1400", "K1");
 
+    //customer list and iterator
     list<Customer> customers_list;
     list<Customer> :: iterator customer_itr;
 
+    //array of the 4 different bike objects
     Motorcycle motorcycles[4] = {suzuki, honda, bmw, kawazaki};
 
+    //file stream objects for reading and writing
     ofstream fileWriter;
     ifstream fileReader;
     
+    //creating pointers of customers and reservation
     Customer *c1;
     Reservation *r;
 
- 
+    
+    //reading all reservation in the text file and creating objects of reservations, customers and push them to theirs lists
     fileReader.open("reservations.txt");
 
     if(fileReader.good())
@@ -432,11 +448,10 @@ int main(){
             }
         	reservations.push_back(*r);
      	}
-        
     }
 
     do{
-        
+        //Main menu
         cout<<"[1] Add Cutomers"<<endl
             <<"[2] List Customers"<<endl
             <<"[3] Reserve Bike "<<endl
@@ -452,6 +467,7 @@ int main(){
             switch(user_input){
            
                 case 1:
+                    /*Adding new customer using the overloaded input stream for customer object and then pushing to customer list*/
                     system("clear");
                     c1 = new Customer();
                     cin >> *c1;
@@ -477,24 +493,29 @@ int main(){
                     cout<<"Customer's last name: ";
                     cin>>last_name;
                     
-
+                    //iterating over the customer list and get the customer object which matches with first and last name
                     for(customer_itr=customers_list.begin(); customer_itr !=customers_list.end(); customer_itr++){
 
                         if(customer_itr->get_firstname() == first_name && customer_itr->get_lastname() == last_name){
+                            //if found, changing flag
                             is_found = true;
 
                         }
                         if(is_found && customer_itr->get_reservation_status() == true && customer_itr->get_license() == 'A'){
+                            //check if customer has a previous reservation
                             cout<<"This customer already has a bike, cannot reserver another one"<<endl;
                         }
 
                         if (is_found && customer_itr->get_license() == 'A' && customer_itr->get_reservation_status() == false){
+                            //check the validity of driving license 
                             for(int i=0; i<4; i++){
+                                //iterating over the motorcycles array and reserve the bike if the condition is true
                                 if(motorcycles[i].get_id_plate() == id_plate && !motorcycles[i].is_reserved()){
+                                    
+                                    motorcycles[i].reserve(); //changing bike status to reserved
+                                    customer_itr->rent(); //chaning customer "reservation" status to true
 
-                                    motorcycles[i].reserve();
-                                    customer_itr->rent();
-                                    r = new Reservation(&*customer_itr, motorcycles[i]);
+                                    r = new Reservation(&*customer_itr, motorcycles[i]); //new reservation object
                                     reservations.push_back(*r);
                                     cout<<"Reserved Successfully!"<<endl<<endl;
                                     break;
@@ -502,24 +523,29 @@ int main(){
                             }
                         }
                         
-                        
-                        if(is_found && customer_itr->get_reservation_status() == false && customer_itr->get_license() != 'A'){
+                        //is_found && customer_itr->get_reservation_status() == false && 
+                        if(customer_itr->get_license() != 'A'){
+                            
                             cout<<"Cannot make this reservation, because the driving license is not of type A"<<endl<<endl;
                         }
                     }
 
                     if(!is_found){
+                        //if the entered first and last name , do not match with existing customer in the list
                         cout<<endl<<"No customer holding this name was found!"<<endl<<endl;
 
                     }
-                    is_found = false;
+
+                    is_found = false; //reset flag to false for another time
                         
                     fileReader.close();
+                    //writing to a file
                     WriteReservationFile(reservations, fileWriter);
                 
                     break;
 
                 case 4:
+
                     //Hand over a bike
                     system("clear");
 
@@ -529,13 +555,12 @@ int main(){
                     cout<<"Enter Customer's last name: ";
                     cin>>last_name;
 
-                    
-                    
+                    //iterating over reservation list and delete reservation from the text file if first and last name match with any customer
                     for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
                     {
                         if(reservation_itr->customer->get_firstname() == first_name && reservation_itr->customer->get_lastname() == last_name){
-                            reservation_itr->cancel_reservation();
-                            reservations.erase(reservation_itr);
+                            reservation_itr->cancel_reservation(); //changing flag values for both(customer and bike objects)
+                            reservations.erase(reservation_itr); //remove from list
                             cout<<endl;
                             cout<<"Reservation deleted Successfully!"<<endl;
                             cout<<endl;
@@ -552,7 +577,7 @@ int main(){
 
                         }
                     }
-                    
+                        //rewrite the file with new values in the list
                         WriteReservationFile(reservations, fileWriter);
 
                         is_found = false;
@@ -565,6 +590,7 @@ int main(){
 
 
                 case 5:
+                    /*Listing all reservation in the reservation list */
                     cout<<endl;
                     for (reservation_itr=reservations.begin(); reservation_itr != reservations.end(); reservation_itr++)
                     {
@@ -582,12 +608,11 @@ int main(){
 
         }
         catch(int msg){
+            // catching error for later use
             cout<<""<<endl;
         }
 
-
     }while(user_input);
-
 
     return 0;
 }
